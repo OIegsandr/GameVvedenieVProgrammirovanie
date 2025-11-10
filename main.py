@@ -47,6 +47,8 @@ import sys
 import os
 import msvcrt
 
+
+#ЦВЕТА ДЛЯ ТЕКСТА
 class colorsText:
     BLUE = '\033[94m'
     CYAN = '\033[96m'
@@ -54,8 +56,9 @@ class colorsText:
     YELLOW = '\033[93m'
     RED = '\033[91m'
     BLANK = '\033[0m' 
+    BLACK = '\033[30m'
+    GRAY = '\033[37m'
     
-
 #Прикольная анимация
 def load_animation():
 
@@ -107,6 +110,8 @@ def load_animation():
 if __name__ == '__main__': 
     load_animation()
 
+
+
 # BREAKPOINT
 '''
 ЭТО НЕ УЧЕБНАЯ ТРЕВОГА. 
@@ -114,12 +119,110 @@ if __name__ == '__main__':
 # DANGER, DANGER
 
 
-#BOARD + PLAYER RELATED
-boardSize = 11
-playerOne_x = 5
-playerOne_y = 5
-playerTwo_x = 6
-playerTwo_y = 6
+
+
+'''#============================================='''
+        #ВСЕ ПРО UI
+'''#============================================='''
+
+
+
+OFFSET_X = 5  # количество пробелов слева
+OFFSET_Y = 2  # количество пустых строк сверху
+
+
+
+'''#============================================='''
+        #КАРТА (МОЖНО РИСОВАТЬ РУКАМИ)
+'''#============================================='''
+
+''' Легенда:
+' ' (пробел) — пустая клетка
+'█' — стена
+'1' — игрок 1
+'2' — игрок 2 '''
+
+#ПЕРВАЯ КАРТА
+mapFirstLayout = [
+    "███████",
+    "█     █",
+    "█     █",
+    "█ 1 2 █",
+    "█     █",
+    "█     █",
+    "███████",
+]
+
+#СОЗДАНИЕ КАРТЫ
+def createMap(mapLayout):
+    boardSizeY = len(mapLayout)
+    boardSizeX = max(len(row) for row in mapLayout)
+
+    #Великолепный код, слава enumerate, слава кортежам о7 о7 о7
+    wallsMap = []
+    playerOne_x = playerOne_y = None
+    playerTwo_x = playerTwo_y = None
+
+    for y, row in enumerate(mapLayout):
+        for x, cell in enumerate(row):  
+            if cell == '█':
+                wallsMap.append((x, y))
+            elif cell == '1':
+                playerOne_x, playerOne_y = x, y
+            elif cell == '2':
+                playerTwo_x, playerTwo_y = x, y
+
+    if playerOne_x is None:
+        playerOne_x, playerOne_y = 1, 1
+    if playerTwo_x is None:
+        playerTwo_x, playerTwo_y = 3, 1
+
+    return boardSizeX, boardSizeY, wallsMap, playerOne_x, playerOne_y, playerTwo_x, playerTwo_y
+
+#Обязательное первое уточнение, в процессе буду менять только mapFirstLayout на mapSecondLayout и mapThirdLayout
+boardSizeX, boardSizeY, wallsMap, playerOne_x, playerOne_y, playerTwo_x, playerTwo_y = createMap(mapFirstLayout)
+
+
+
+'''#============================================='''
+                  #МЕЛКИЕ ФУНКЦИИ
+'''#============================================='''
+
+
+#Может ли двигаться в клетку
+def can_move(x, y):    
+    return (x, y) not in wallsMap and 0 <= x < boardSizeX and 0 <= y < boardSizeY
+
+
+#РИСУЕТ ПОЛЕ
+def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
+    sys.stdout.write("\033[H")
+
+    # вертикальный сдвиг
+    for _ in range(OFFSET_Y):
+        print()
+
+    for y in range(boardSizeY):
+        cubeInside = " " * OFFSET_X  # горизонтальный сдвиг
+        for x in range(boardSizeX):
+
+            if (x, y) in wallsMap:
+                cubeInside += colorsText.GRAY + "███" + colorsText.BLANK
+
+            elif x == posPlayerOneX and y == posPlayerOneY and x == posPlayerTwoX and y == posPlayerTwoY:
+                cubeInside += colorsText.CYAN+ "[3]" + colorsText.BLANK
+
+            elif x == posPlayerOneX and y == posPlayerOneY:
+                cubeInside += colorsText.BLUE + "[1]" + colorsText.BLANK
+
+            elif x == posPlayerTwoX and y == posPlayerTwoY:
+                cubeInside += colorsText.GREEN + "[2]" + colorsText.BLANK
+
+            else:
+                cubeInside += "[ ]"
+        print(cubeInside)
+    sys.stdout.flush()
+
 
 #ЧИСТИТ КОНСОЛЬ + ПО МЕЛОЧИ
 os.system("") 
@@ -127,28 +230,24 @@ print("\033[2J", end="")
 print("\033[H", end="") 
 
 
-#РИСУЕТ ПОЛЕ
-def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
-    sys.stdout.write("\033[H")
-    for y in range(boardSize):
-        cubeInside = ""
-        for x in range(boardSize):
-            if x == posPlayerOneX and y == posPlayerOneY and x == posPlayerTwoX and y == posPlayerTwoY:
-                cubeInside += colorsText.CYAN+ "[3]" + colorsText.BLANK
-            elif x == posPlayerOneX and y == posPlayerOneY:
-                cubeInside += colorsText.BLUE + "[1]" + colorsText.BLANK
-            elif x == posPlayerTwoX and y == posPlayerTwoY:
-                cubeInside += colorsText.GREEN + "[2]" + colorsText.BLANK
-            else:
-                cubeInside += "[ ]"
-        print(cubeInside)
-    sys.stdout.flush()
 
 
-lastKey = None
+'''#============================================='''
+#==================================================#
 
-while True:
+        #ЦИКЛ САМОЙ ИГРЫ, ДО ЭТОГО ПОДГОТОВКА
+
+#==================================================#
+'''#============================================='''
+  
+
+while True: #Считай void Update()
+
+
     drawField(playerOne_x, playerOne_y, playerTwo_x, playerTwo_y)
+
+
+
     if msvcrt.kbhit():
         inputKey = msvcrt.getch().decode('latin-1').lower()
 
@@ -158,30 +257,35 @@ while True:
 
         #ИНПУТЫ
 
-        if inputKey == lastKey:
-            continue
-        lastKey = inputKey
 
         #ИГРОК 1
-        if inputKey == 'w' and playerOne_y > 0:
+
+        
+        if inputKey == 'w' and playerOne_y > 0 and can_move(playerOne_x, playerOne_y-1):
             playerOne_y -= 1
-        elif inputKey == 's' and playerOne_y < boardSize - 1:
+            time.sleep(0.05)
+        elif inputKey == 's' and playerOne_y < boardSizeY - 1 and can_move(playerOne_x, playerOne_y+1):
             playerOne_y += 1
-        elif inputKey == 'a' and playerOne_x > 0:
+            time.sleep(0.05)
+        elif inputKey == 'a' and playerOne_x > 0 and can_move(playerOne_x-1, playerOne_y):
             playerOne_x -= 1
-        elif inputKey == 'd' and playerOne_x < boardSize - 1:
+            time.sleep(0.05)
+        elif inputKey == 'd' and playerOne_x < boardSizeX - 1 and can_move(playerOne_x+1, playerOne_y):
             playerOne_x += 1
+            time.sleep(0.05)
 
         #ИГРОК 2
-        if inputKey == 'y' and playerTwo_y > 0:
+        if inputKey == 'y' and playerTwo_y > 0 and can_move(playerTwo_x, playerTwo_y-1):
             playerTwo_y -= 1
-        elif inputKey == 'h' and playerTwo_y < boardSize - 1:
+            time.sleep(0.05)
+        elif inputKey == 'h' and playerTwo_y < boardSizeY - 1 and can_move(playerTwo_x, playerTwo_y+1):
             playerTwo_y += 1
-        elif inputKey == 'g' and playerTwo_x > 0:
+            time.sleep(0.05)
+        elif inputKey == 'g' and playerTwo_x > 0 and can_move(playerTwo_x-1, playerTwo_y):
             playerTwo_x -= 1
-        elif inputKey == 'j' and playerTwo_x < boardSize - 1:
+            time.sleep(0.05)
+        elif inputKey == 'j' and playerTwo_x < boardSizeX - 1 and can_move(playerTwo_x+1, playerTwo_y):
             playerTwo_x += 1
+            time.sleep(0.05)
 
-    else:
-        lastKey = None
-        time.sleep(0.05)
+        
