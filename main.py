@@ -107,8 +107,9 @@ def load_animation():
     
     if os.name =="nt":
         os.system("cls")
-if __name__ == '__main__': 
-    load_animation()
+        
+#if __name__ == '__main__': 
+    #load_animation()
 
 
 
@@ -292,9 +293,7 @@ def can_move(x, y):
 #ЧИСТИТ КОНСОЛЬ + ПО МЕЛОЧИ
 os.system("") 
 print("\033[2J", end="") 
-print("\033[H", end="") 
-
-
+print("\033[H", end="")
 
 
 '''#============================================='''
@@ -311,49 +310,53 @@ while gameIsActive: #Считай void Update()
 
     drawGameUI()
 
-
+    keys = []
     if msvcrt.kbhit():
-        inputKey = msvcrt.getch().decode('latin-1').lower()
+        
+        #Делает очередь для инпутов. Должно пофиксить пару багов
+        keys.append(msvcrt.getch().decode('latin-1').lower())
 
         #time.sleep(0.01) - чтоб консоль успевала прогрузиться
 
-
-
-        '''
-        ВСЕ ЧТО СВЯЗЯННО С ПЕРЕДВИЖЕНИЕМ
-        '''
-        #ИНПУТЫ
-
-        #ИГРОК 1
-        if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
-            playerOneY -= 1
-            checkPlayer(playerOneX, playerOneY)
-        elif inputKey == 's' and playerOneY < boardSizeY - 1 and can_move(playerOneX, playerOneY+1):
-            playerOneY += 1
-            checkPlayer(playerOneX, playerOneY)
-        elif inputKey == 'a' and playerOneX > 0 and can_move(playerOneX-1, playerOneY):
-            playerOneX -= 1
-            checkPlayer(playerOneX, playerOneY)
-        elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
-            playerOneX += 1
-            checkPlayer(playerOneX, playerOneY)
-
-        #ИГРОК 2
-        if inputKey == 'y' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
-            playerTwoY -= 1
-            checkPlayer(playerTwoX, playerTwoY)
-        elif inputKey == 'h' and playerTwoY < boardSizeY - 1 and can_move(playerTwoX, playerTwoY+1):
-            playerTwoY += 1
-            checkPlayer(playerTwoX, playerTwoY)
-        elif inputKey == 'g' and playerTwoX > 0 and can_move(playerTwoX-1, playerTwoY):
-            playerTwoX -= 1
-            checkPlayer(playerTwoX, playerTwoY)
-        elif inputKey == 'j' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
-            playerTwoX += 1
-            checkPlayer(playerTwoX, playerTwoY)
+	
+        for inputKey in keys:
+                
+            '''
+            ВСЕ ЧТО СВЯЗЯННО С ПЕРЕДВИЖЕНИЕМ
+            '''
+            #ИНПУТЫ
+    
+            #ИГРОК 1
+            if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
+                playerOneY -= 1
+                checkPlayer(playerOneX, playerOneY)
+            elif inputKey == 's' and playerOneY < boardSizeY - 1 and can_move(playerOneX, playerOneY+1):
+                playerOneY += 1
+                checkPlayer(playerOneX, playerOneY)
+            elif inputKey == 'a' and playerOneX > 0 and can_move(playerOneX-1, playerOneY):
+                playerOneX -= 1
+                checkPlayer(playerOneX, playerOneY)
+            elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
+                playerOneX += 1
+                checkPlayer(playerOneX, playerOneY)
+    
+            #ИГРОК 2
+            if inputKey == 'y' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
+                playerTwoY -= 1
+                checkPlayer(playerTwoX, playerTwoY)
+            elif inputKey == 'h' and playerTwoY < boardSizeY - 1 and can_move(playerTwoX, playerTwoY+1):
+                playerTwoY += 1
+                checkPlayer(playerTwoX, playerTwoY)
+            elif inputKey == 'g' and playerTwoX > 0 and can_move(playerTwoX-1, playerTwoY):
+                playerTwoX -= 1
+                checkPlayer(playerTwoX, playerTwoY)
+            elif inputKey == 'j' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
+                playerTwoX += 1
+                checkPlayer(playerTwoX, playerTwoY)
 
     else:
         pass
+    
         
     #time.sleep(0.03)
         
