@@ -107,8 +107,8 @@ def load_animation():
     
     if os.name =="nt":
         os.system("cls")
-#if __name__ == '__main__': 
-#    load_animation()
+if __name__ == '__main__': 
+    load_animation()
 
 
 
@@ -139,7 +139,7 @@ def drawUITop():
     print()
     print(" " * (OFFSET_X + 3) + colorText.YELLOW + "=== СТАТУС ===" + colorText.BLANK)
     print()
-    print(" " * (OFFSET_X - 6) + f"HP 1: [{(curPlayerOneHP * "▓█") + (maxPlayerOneHP - curPlayerOneHP) * "  "}]  |  HP 2: [{(curPlayerTwoHP * "▓█") + (maxPlayerTwoHP - curPlayerTwoHP) * "▁▁"}]")
+    print(" " * (OFFSET_X - 6) + f"Player 1's HP: [{(curPlayerOneHP * '▓█') + (maxPlayerOneHP - curPlayerOneHP) * '▁▁'}]  |  Player 2's HP: [{(curPlayerTwoHP * '▓█') + (maxPlayerTwoHP - curPlayerTwoHP) * '▁▁'}]")
     print()
     print(" " * (OFFSET_X + 3) + f"Loot count: {lootCount}")
     print()
@@ -194,6 +194,8 @@ def drawGameUI():
 '''#============================================='''
         #ИГРОВАЯ ЛОГИКА И ВСЕ ПРИСУЩЕЕ
 '''#============================================='''
+
+gameIsActive = True
 
 curPlayerOneHP = maxPlayerOneHP = maxPlayerTwoHP = curPlayerTwoHP = 3
 
@@ -305,7 +307,7 @@ print("\033[H", end="")
   
 
 
-while True: #Считай void Update()
+while gameIsActive: #Считай void Update()
 
     drawGameUI()
 
@@ -326,39 +328,32 @@ while True: #Считай void Update()
         if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
             playerOneY -= 1
             checkPlayer(playerOneX, playerOneY)
-            time.sleep(0.05)
         elif inputKey == 's' and playerOneY < boardSizeY - 1 and can_move(playerOneX, playerOneY+1):
             playerOneY += 1
             checkPlayer(playerOneX, playerOneY)
-            time.sleep(0.05)
         elif inputKey == 'a' and playerOneX > 0 and can_move(playerOneX-1, playerOneY):
             playerOneX -= 1
             checkPlayer(playerOneX, playerOneY)
-            time.sleep(0.05)
         elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
             playerOneX += 1
             checkPlayer(playerOneX, playerOneY)
-            time.sleep(0.05)
 
         #ИГРОК 2
         if inputKey == 'y' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
             playerTwoY -= 1
             checkPlayer(playerTwoX, playerTwoY)
-            time.sleep(0.05)
         elif inputKey == 'h' and playerTwoY < boardSizeY - 1 and can_move(playerTwoX, playerTwoY+1):
             playerTwoY += 1
             checkPlayer(playerTwoX, playerTwoY)
-            time.sleep(0.05)
         elif inputKey == 'g' and playerTwoX > 0 and can_move(playerTwoX-1, playerTwoY):
             playerTwoX -= 1
             checkPlayer(playerTwoX, playerTwoY)
-            time.sleep(0.05)
         elif inputKey == 'j' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
             playerTwoX += 1
             checkPlayer(playerTwoX, playerTwoY)
-            time.sleep(0.05)
-    # ЗАМЕДЛИТЕЛЬ ОТОБРАЖЕНИЯ. ВКЛЮЧАТЬ ЕСЛИ КОНСОЛЬ СЛИШКОМ БЫСТРО ВСЕ РИСУЕТ И НЕ УСПЕВАЕТ ЭТО ОТОБРАЖАТЬ
+
     else:
-        print(".", end="", flush=True)
-        time.sleep(0.03)
+        pass
+        
+    #time.sleep(0.03)
         
