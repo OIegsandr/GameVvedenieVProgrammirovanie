@@ -49,7 +49,7 @@ import msvcrt
 
 
 #ЦВЕТА ДЛЯ ТЕКСТА
-class colorsText:
+class colorText:
     BLUE = '\033[94m'
     CYAN = '\033[96m'
     GREEN = '\033[92m'
@@ -107,8 +107,8 @@ def load_animation():
     
     if os.name =="nt":
         os.system("cls")
-if __name__ == '__main__': 
-    load_animation()
+#if __name__ == '__main__': 
+#    load_animation()
 
 
 
@@ -127,8 +127,79 @@ if __name__ == '__main__':
 
 
 
-OFFSET_X = 5  # количество пробелов слева
-OFFSET_Y = 2  # количество пустых строк сверху
+OFFSET_X = 110  # количество пробелов слева
+OFFSET_Y = 6  # количество пустых строк сверху
+
+
+
+def drawUITop():
+
+    print("\033[H", end="")
+    print(" " * (OFFSET_X + 3) + colorText.YELLOW + "=== СТАТУС ===" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 6) + f"HP 1: [{(curPlayerOneHP * "▓█") + (maxPlayerOneHP - curPlayerOneHP) * "  "}]  |  HP 2: [{(curPlayerTwoHP * "▓█") + (maxPlayerTwoHP - curPlayerTwoHP) * "▁▁"}]")
+    print()
+    print(" " * (OFFSET_X + 3) + f"Loot count: {lootCount}")
+    print()
+    print()
+
+def drawUIBottom():
+    print()
+    print()
+    print(" " * (OFFSET_X + 3) + colorText.CYAN + "=== ПОМОЩЬ ===" + colorText.BLANK)
+    print(" " * (OFFSET_X - 7) + "WASD — Игрок 1   |   YGHJ — Игрок 2")
+
+#РИСУЕТ ПОЛЕ
+def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
+    sys.stdout.write("\033[H")
+
+    for _ in range(OFFSET_Y):
+        print()
+
+    for y in range(boardSizeY):
+        cubeInside = " " * OFFSET_X  # горизонтальный сдвиг
+        for x in range(boardSizeX):
+
+            if (x, y) in wallsMap:
+                cubeInside += colorText.GRAY + "███" + colorText.BLANK
+
+            elif x == posPlayerOneX and y == posPlayerOneY and x == posPlayerTwoX and y == posPlayerTwoY:
+                cubeInside += colorText.CYAN+ "[3]" + colorText.BLANK
+
+            elif x == posPlayerOneX and y == posPlayerOneY:
+                cubeInside += colorText.BLUE + "[1]" + colorText.BLANK
+
+            elif x == posPlayerTwoX and y == posPlayerTwoY:
+                cubeInside += colorText.GREEN + "[2]" + colorText.BLANK
+
+            elif (x, y) in loot:
+                cubeInside += colorText.YELLOW + "[$]" + colorText.BLANK
+                
+            else:
+                cubeInside += "[ ]"
+        print(cubeInside)
+    sys.stdout.flush()
+
+
+
+'''#============================================='''
+        #ИГРОВАЯ ЛОГИКА И ВСЕ ПРИСУЩЕЕ
+'''#============================================='''
+
+curPlayerOneHP = maxPlayerOneHP = maxPlayerTwoHP = curPlayerTwoHP = 3
+
+lootCount = 0
+
+
+def checkPlayer(posX, posY):
+
+    if (posX, posY) in loot:
+
+        # Берет ОБЩИЙ lootCount, а не создает новый внутри функции. Запомнить
+        global lootCount
+
+        loot.remove((posX, posY))
+        lootCount += 1
 
 
 
@@ -145,7 +216,7 @@ OFFSET_Y = 2  # количество пустых строк сверху
 #ПЕРВАЯ КАРТА
 mapFirstLayout = [
     "███████",
-    "█     █",
+    "█ $   █",
     "█     █",
     "█ 1 2 █",
     "█     █",
@@ -158,29 +229,43 @@ def createMap(mapLayout):
     boardSizeY = len(mapLayout)
     boardSizeX = max(len(row) for row in mapLayout)
 
+
+    '''---------------------------------------------------------'''
+    # ПРОПИСЬ ВСЕХ ТИПОВ РАЗЛИЧНЫХ ВЕЩЕЙ НА КАРТЕ (Стены, лут и тд)
+    '''---------------------------------------------------------'''
+
     #Великолепный код, слава enumerate, слава кортежам о7 о7 о7
     wallsMap = []
-    playerOne_x = playerOne_y = None
-    playerTwo_x = playerTwo_y = None
+    loot = []
+
+
+    playerOneX = playerOneY = None
+    playerTwoX = playerTwoY = None
 
     for y, row in enumerate(mapLayout):
         for x, cell in enumerate(row):  
             if cell == '█':
                 wallsMap.append((x, y))
             elif cell == '1':
-                playerOne_x, playerOne_y = x, y
+                playerOneX, playerOneY = x, y
             elif cell == '2':
-                playerTwo_x, playerTwo_y = x, y
+                playerTwoX, playerTwoY = x, y
 
-    if playerOne_x is None:
-        playerOne_x, playerOne_y = 1, 1
-    if playerTwo_x is None:
-        playerTwo_x, playerTwo_y = 3, 1
+            # Дальше идет все вещи
+            elif cell == '$':
+                loot.append((x, y))
 
-    return boardSizeX, boardSizeY, wallsMap, playerOne_x, playerOne_y, playerTwo_x, playerTwo_y
+    if playerOneX is None:
+        playerOneX, playerOneY = 1, 1
+    if playerTwoX is None:
+        playerTwoX, playerTwoY = 3, 1
 
-#Обязательное первое уточнение, в процессе буду менять только mapFirstLayout на mapSecondLayout и mapThirdLayout
-boardSizeX, boardSizeY, wallsMap, playerOne_x, playerOne_y, playerTwo_x, playerTwo_y = createMap(mapFirstLayout)
+    #ДОБАВЛЯЙ ВСЕ НОВЫЕ ВЕЩИ СЮДА
+    return boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot
+
+#И СЮДА
+#Обязательное первое уточнение, в процессе буду менять только mapFirstLayout на mapSecondLayout и mapThirdLayout 
+boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot = createMap(mapFirstLayout)
 
 
 
@@ -193,41 +278,10 @@ boardSizeX, boardSizeY, wallsMap, playerOne_x, playerOne_y, playerTwo_x, playerT
 def can_move(x, y):    
     return (x, y) not in wallsMap and 0 <= x < boardSizeX and 0 <= y < boardSizeY
 
-
-#РИСУЕТ ПОЛЕ
-def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
-    sys.stdout.write("\033[H")
-
-    # вертикальный сдвиг
-    for _ in range(OFFSET_Y):
-        print()
-
-    for y in range(boardSizeY):
-        cubeInside = " " * OFFSET_X  # горизонтальный сдвиг
-        for x in range(boardSizeX):
-
-            if (x, y) in wallsMap:
-                cubeInside += colorsText.GRAY + "███" + colorsText.BLANK
-
-            elif x == posPlayerOneX and y == posPlayerOneY and x == posPlayerTwoX and y == posPlayerTwoY:
-                cubeInside += colorsText.CYAN+ "[3]" + colorsText.BLANK
-
-            elif x == posPlayerOneX and y == posPlayerOneY:
-                cubeInside += colorsText.BLUE + "[1]" + colorsText.BLANK
-
-            elif x == posPlayerTwoX and y == posPlayerTwoY:
-                cubeInside += colorsText.GREEN + "[2]" + colorsText.BLANK
-
-            else:
-                cubeInside += "[ ]"
-        print(cubeInside)
-    sys.stdout.flush()
-
-
 #ЧИСТИТ КОНСОЛЬ + ПО МЕЛОЧИ
 os.system("") 
 print("\033[2J", end="") 
-print("\033[H", end="") 
+#print("\033[H", end="") 
 
 
 
@@ -241,10 +295,13 @@ print("\033[H", end="")
 '''#============================================='''
   
 
+
 while True: #Считай void Update()
 
-
-    drawField(playerOne_x, playerOne_y, playerTwo_x, playerTwo_y)
+    drawUITop()
+    drawField(playerOneX, playerOneY, playerTwoX, playerTwoY)
+    drawUIBottom()
+    sys.stdout.flush()
 
 
 
@@ -261,31 +318,41 @@ while True: #Считай void Update()
         #ИГРОК 1
 
         
-        if inputKey == 'w' and playerOne_y > 0 and can_move(playerOne_x, playerOne_y-1):
-            playerOne_y -= 1
+        if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
+            playerOneY -= 1
+            checkPlayer(playerOneX, playerOneY)
             time.sleep(0.05)
-        elif inputKey == 's' and playerOne_y < boardSizeY - 1 and can_move(playerOne_x, playerOne_y+1):
-            playerOne_y += 1
+        elif inputKey == 's' and playerOneY < boardSizeY - 1 and can_move(playerOneX, playerOneY+1):
+            playerOneY += 1
+            checkPlayer(playerOneX, playerOneY)
             time.sleep(0.05)
-        elif inputKey == 'a' and playerOne_x > 0 and can_move(playerOne_x-1, playerOne_y):
-            playerOne_x -= 1
+        elif inputKey == 'a' and playerOneX > 0 and can_move(playerOneX-1, playerOneY):
+            playerOneX -= 1
+            checkPlayer(playerOneX, playerOneY)
             time.sleep(0.05)
-        elif inputKey == 'd' and playerOne_x < boardSizeX - 1 and can_move(playerOne_x+1, playerOne_y):
-            playerOne_x += 1
+        elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
+            playerOneX += 1
+            checkPlayer(playerOneX, playerOneY)
             time.sleep(0.05)
 
         #ИГРОК 2
-        if inputKey == 'y' and playerTwo_y > 0 and can_move(playerTwo_x, playerTwo_y-1):
-            playerTwo_y -= 1
+        if inputKey == 'y' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
+            playerTwoY -= 1
+            checkPlayer(playerTwoX, playerTwoY)
             time.sleep(0.05)
-        elif inputKey == 'h' and playerTwo_y < boardSizeY - 1 and can_move(playerTwo_x, playerTwo_y+1):
-            playerTwo_y += 1
+        elif inputKey == 'h' and playerTwoY < boardSizeY - 1 and can_move(playerTwoX, playerTwoY+1):
+            playerTwoY += 1
+            checkPlayer(playerTwoX, playerTwoY)
             time.sleep(0.05)
-        elif inputKey == 'g' and playerTwo_x > 0 and can_move(playerTwo_x-1, playerTwo_y):
-            playerTwo_x -= 1
+        elif inputKey == 'g' and playerTwoX > 0 and can_move(playerTwoX-1, playerTwoY):
+            playerTwoX -= 1
+            checkPlayer(playerTwoX, playerTwoY)
             time.sleep(0.05)
-        elif inputKey == 'j' and playerTwo_x < boardSizeX - 1 and can_move(playerTwo_x+1, playerTwo_y):
-            playerTwo_x += 1
+        elif inputKey == 'j' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
+            playerTwoX += 1
+            checkPlayer(playerTwoX, playerTwoY)
             time.sleep(0.05)
-
+    # ЗАМЕДЛИТЕЛЬ ОТОБРАЖЕНИЯ. ВКЛЮЧАТЬ ЕСЛИ КОНСОЛЬ СЛИШКОМ БЫСТРО ВСЕ РИСУЕТ И НЕ УСПЕВАЕТ ЭТО ОТОБРАЖАТЬ
+    else:
+        time.sleep(0.03)
         
