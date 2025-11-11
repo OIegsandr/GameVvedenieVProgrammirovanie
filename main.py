@@ -128,34 +128,37 @@ def load_animation():
 
 
 OFFSET_X = 110  # количество пробелов слева
-OFFSET_Y = 6  # количество пустых строк сверху
+OFFSET_Y = 3  # количество пустых строк сверху
 
 
 
 def drawUITop():
-
-    print("\033[H", end="")
+    for _ in range(OFFSET_Y):
+            print()
+    print(" " * (OFFSET_X - 20) + "╔════════════════════╧═════════════════╧════════════════════╗")
+    print()
     print(" " * (OFFSET_X + 3) + colorText.YELLOW + "=== СТАТУС ===" + colorText.BLANK)
     print()
     print(" " * (OFFSET_X - 6) + f"HP 1: [{(curPlayerOneHP * "▓█") + (maxPlayerOneHP - curPlayerOneHP) * "  "}]  |  HP 2: [{(curPlayerTwoHP * "▓█") + (maxPlayerTwoHP - curPlayerTwoHP) * "▁▁"}]")
     print()
     print(" " * (OFFSET_X + 3) + f"Loot count: {lootCount}")
     print()
+    print(" " * (OFFSET_X - 20) + "╚════════════════════╤═════════════════╤════════════════════╝")
+    print()
     print()
 
 def drawUIBottom():
     print()
     print()
+    print(" " * (OFFSET_X - 25) + "╔═════════════════════════╧═════════════════╧═════════════════════════╗")
+    print()
     print(" " * (OFFSET_X + 3) + colorText.CYAN + "=== ПОМОЩЬ ===" + colorText.BLANK)
     print(" " * (OFFSET_X - 7) + "WASD — Игрок 1   |   YGHJ — Игрок 2")
+    print()
+    print(" " * (OFFSET_X - 25) + "╚═════════════════════════╤═════════════════╤═════════════════════════╝")
 
 #РИСУЕТ ПОЛЕ
 def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
-    sys.stdout.write("\033[H")
-
-    for _ in range(OFFSET_Y):
-        print()
-
     for y in range(boardSizeY):
         cubeInside = " " * OFFSET_X  # горизонтальный сдвиг
         for x in range(boardSizeX):
@@ -178,9 +181,15 @@ def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
             else:
                 cubeInside += "[ ]"
         print(cubeInside)
+
+def drawGameUI():
+    print("\033[H", end="") 
+    drawUITop()
+    drawField(playerOneX, playerOneY, playerTwoX, playerTwoY)
+    drawUIBottom()
+
+    # Это вроде надо, но я ебал почему без него оно начинает работать
     sys.stdout.flush()
-
-
 
 '''#============================================='''
         #ИГРОВАЯ ЛОГИКА И ВСЕ ПРИСУЩЕЕ
@@ -281,7 +290,7 @@ def can_move(x, y):
 #ЧИСТИТ КОНСОЛЬ + ПО МЕЛОЧИ
 os.system("") 
 print("\033[2J", end="") 
-#print("\033[H", end="") 
+print("\033[H", end="") 
 
 
 
@@ -298,26 +307,22 @@ print("\033[2J", end="")
 
 while True: #Считай void Update()
 
-    drawUITop()
-    drawField(playerOneX, playerOneY, playerTwoX, playerTwoY)
-    drawUIBottom()
-    sys.stdout.flush()
-
+    drawGameUI()
 
 
     if msvcrt.kbhit():
         inputKey = msvcrt.getch().decode('latin-1').lower()
 
+        #time.sleep(0.01) - чтоб консоль успевала прогрузиться
+
+
+
         '''
         ВСЕ ЧТО СВЯЗЯННО С ПЕРЕДВИЖЕНИЕМ
         '''
-
         #ИНПУТЫ
 
-
         #ИГРОК 1
-
-        
         if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
             playerOneY -= 1
             checkPlayer(playerOneX, playerOneY)
@@ -354,5 +359,6 @@ while True: #Считай void Update()
             time.sleep(0.05)
     # ЗАМЕДЛИТЕЛЬ ОТОБРАЖЕНИЯ. ВКЛЮЧАТЬ ЕСЛИ КОНСОЛЬ СЛИШКОМ БЫСТРО ВСЕ РИСУЕТ И НЕ УСПЕВАЕТ ЭТО ОТОБРАЖАТЬ
     else:
+        print(".", end="", flush=True)
         time.sleep(0.03)
         
