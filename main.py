@@ -19,7 +19,7 @@
 .....33MMHGGGMM,,:::::::::;SMMSSSAA55555GGH,,:::;:;rrMhHA2SSSSSSGH....
 ....h55MMHHGG33::::::::::;;;riSSSAA55233HMM:::::;;;;;iir;;SSSSSSGH....
 ....322MMHHHH33::::;::;::::::;GSSAA55255HMM:::;:::::::;;::GSGSSSHHGG..
-....522MhMHHHMM::::::::::::,33SGGXX522A2HHHrr::::::::::,XXSSSSSSMMGH..
+....522MhMHHHMM::::::::::::,33SGGXX522A2HHHrr::::::::::,XXSSSSSSMMGH..№
 ..552A233MHHHHG22::::::::::AGGSGHAA222XXMHHHHi:::::,,,,:GGSSSSSSMMHH..
 ..55AAA22MHHHHHHGhss::;AAMMGGGGS5225522A3HHGGHhhXs::;22GSGSSSSSGMhHH..
 ..22AAAXXhMMHHHHHGGGGGGGGGGGGGHHA2255522AMMHHGGGGGSGGGGSSSSSSSSMMMHH..
@@ -46,7 +46,9 @@ import time
 import sys
 import os
 import msvcrt
+import pygame
 
+pygame.mixer.init()
 
 #ЦВЕТА ДЛЯ ТЕКСТА
 class colorText:
@@ -58,6 +60,10 @@ class colorText:
     BLANK = '\033[0m' 
     BLACK = '\033[30m'
     GRAY = '\033[37m'
+
+#ЗВУКИ
+soundTrap = pygame.mixer.Sound("D:/UniverProjects/VvedenieVProgrammirovanie/ProjectGame/GameVvedenieVProgrammirovanie/audio/trap.wav")
+soundLoot  = pygame.mixer.Sound("D:/UniverProjects/VvedenieVProgrammirovanie/ProjectGame/GameVvedenieVProgrammirovanie/audio/takeLoot.wav")
     
 #Прикольная анимация
 def load_animation():
@@ -107,11 +113,7 @@ def load_animation():
     
     if os.name =="nt":
         os.system("cls")
-        
-#if __name__ == '__main__': 
-    #load_animation()
-
-
+    
 
 # BREAKPOINT
 '''
@@ -140,7 +142,7 @@ def drawUITop():
     print()
     print(" " * (OFFSET_X + 3) + colorText.YELLOW + "=== СТАТУС ===" + colorText.BLANK)
     print()
-    print(" " * (OFFSET_X - 6) + f"Player 1's HP: [{(curPlayerOneHP * '▓█') + (maxPlayerOneHP - curPlayerOneHP) * '▁▁'}]  |  Player 2's HP: [{(curPlayerTwoHP * '▓█') + (maxPlayerTwoHP - curPlayerTwoHP) * '▁▁'}]")
+    print(" " * (OFFSET_X - 15) + f"Player 1's HP: [{(curPlayerOneHP * '▓█') + (maxPlayerOneHP - curPlayerOneHP) * '▁▁'}]  |  Player 2's HP: [{(curPlayerTwoHP * '▓█') + (maxPlayerTwoHP - curPlayerTwoHP) * '▁▁'}]")
     print()
     print(" " * (OFFSET_X + 3) + f"Loot count: {lootCount}")
     print()
@@ -178,6 +180,12 @@ def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
 
             elif (x, y) in loot:
                 cubeInside += colorText.YELLOW + "[$]" + colorText.BLANK
+
+            elif (x, y) in bigLoot:
+                cubeInside += colorText.YELLOW + "[₿]" + colorText.BLANK
+
+            elif (x, y) in trap:
+                cubeInside += colorText.RED + "[‼]" + colorText.BLANK
                 
             else:
                 cubeInside += "[ ]"
@@ -189,7 +197,7 @@ def drawGameUI():
     drawField(playerOneX, playerOneY, playerTwoX, playerTwoY)
     drawUIBottom()
 
-    # Это вроде надо, но я ебал почему без него оно начинает работать
+    # Это вроде надо, но я хз почему без него оно начинает работать
     sys.stdout.flush()
 
 '''#============================================='''
@@ -202,7 +210,7 @@ curPlayerOneHP = maxPlayerOneHP = maxPlayerTwoHP = curPlayerTwoHP = 3
 
 lootCount = 0
 
-
+    
 def checkPlayer(posX, posY):
 
     if (posX, posY) in loot:
@@ -212,6 +220,26 @@ def checkPlayer(posX, posY):
 
         loot.remove((posX, posY))
         lootCount += 1
+        soundLoot.play()
+
+    elif (posX, posY) in bigLoot:
+        bigLoot.remove((posX, posY))
+        lootCount += 3
+        soundLoot.play()
+
+    elif (posX, posY) in trap:
+        trap.remove((posX, posY))
+        damagePlayer(posX, posY, 1)
+        soundTrap.play()
+
+
+def damagePlayer(posX, posY, dmg):
+    global curPlayerOneHP, curPlayerTwoHP, gameIsActive
+
+    if posX == playerOneX and posY == playerOneY:
+        curPlayerOneHP -= dmg
+    elif posX == playerTwoX and posY == playerTwoY:
+        curPlayerTwoHP -= dmg
 
 
 
@@ -227,13 +255,16 @@ def checkPlayer(posX, posY):
 
 #ПЕРВАЯ КАРТА
 mapFirstLayout = [
-    "███████",
-    "█ $   █",
-    "█     █",
-    "█ 1 2 █",
-    "█     █",
-    "█     █",
-    "███████",
+    "████████████",
+    "█ $        █",
+    "█       ‼  █",
+    "█    ‼     █",
+    "█          █",
+    "█          █",
+    "█ 1 2   ██ █",
+    "█   ██████ █",
+    "█        ₿ █",
+    "████████████",
 ]
 
 #СОЗДАНИЕ КАРТЫ
@@ -249,6 +280,8 @@ def createMap(mapLayout):
     #Великолепный код, слава enumerate, слава кортежам о7 о7 о7
     wallsMap = []
     loot = []
+    bigLoot = []
+    trap = []
 
 
     playerOneX = playerOneY = None
@@ -266,6 +299,10 @@ def createMap(mapLayout):
             # Дальше идет все вещи
             elif cell == '$':
                 loot.append((x, y))
+            elif cell == '₿':
+                bigLoot.append((x, y))
+            elif cell == '‼':
+                trap.append((x, y))
 
     if playerOneX is None:
         playerOneX, playerOneY = 1, 1
@@ -273,11 +310,11 @@ def createMap(mapLayout):
         playerTwoX, playerTwoY = 3, 1
 
     #ДОБАВЛЯЙ ВСЕ НОВЫЕ ВЕЩИ СЮДА
-    return boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot
+    return boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot, bigLoot, trap
 
 #И СЮДА
 #Обязательное первое уточнение, в процессе буду менять только mapFirstLayout на mapSecondLayout и mapThirdLayout 
-boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot = createMap(mapFirstLayout)
+boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot, bigLoot, trap = createMap(mapFirstLayout)
 
 
 
@@ -303,11 +340,12 @@ print("\033[H", end="")
 
 #==================================================#
 '''#============================================='''
-  
 
+if __name__ == '__main__': 
+    load_animation()
 
 while gameIsActive: #Считай void Update()
-
+    
     drawGameUI()
 
     keys = []
@@ -316,7 +354,7 @@ while gameIsActive: #Считай void Update()
         #Делает очередь для инпутов. Должно пофиксить пару багов
         keys.append(msvcrt.getch().decode('latin-1').lower())
 
-        #time.sleep(0.01) - чтоб консоль успевала прогрузиться
+        time.sleep(0.01) #- чтоб консоль успевала прогрузиться
 
 	
         for inputKey in keys:
