@@ -325,21 +325,7 @@ def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2,
     # --- Магазин покупок ---
     buying = True
     while buying:
-        print("\033[2J\033[H", end="")
-        print(" " * (OFFSET_X - 20) + "╔════════════════════╧═════════════════╧════════════════════╗\n")
-        print(" " * (OFFSET_X + 10) + colorText.ORANGEL + "=== CASH SCREEN ===" + colorText.BLANK + "\n")
-        print(" " * (OFFSET_X - 20) + colorText.ORANGE + f"Player Ⅰ: base {colorText.YELLOW}{base1}{colorText.ORANGE} → final {colorText.YELLOW}{final1}{colorText.BLANK}\n")
-        print(" " * (OFFSET_X - 20) + colorText.ORANGE + f"Player Ⅱ: base {colorText.YELLOW}{base2}{colorText.ORANGE} → final {colorText.YELLOW}{final2}{colorText.BLANK}\n")
-        print(" " * (OFFSET_X - 20) + "╚════════════════════╤═════════════════╤════════════════════╝\n")
-        print(" " * (OFFSET_X - 15) + colorText.CYAN + "=== CONDITIONS APPLIED ===" + colorText.BLANK)
-        for line in bonusText:
-            print(" " * (OFFSET_X - 10) + colorText.YELLOW + "- " + line + colorText.BLANK)
-        print("\n")
-        print(" " * (OFFSET_X - 15) + colorText.CYAN + "=== SHOP ===" + colorText.BLANK)
-        print(f"Player Ⅰ: Money: {savedLoot1} | Bombs: {savedBombs1} (Cost: 3) | Walls: {savedWalls1} (Cost: 2)")
-        print(f"Player Ⅱ: Money: {savedLoot2} | Bombs: {savedBombs2} (Cost: 3) | Walls: {savedWalls2} (Cost: 2)")
-        print("Press keys: 1 - Buy P1 Bomb, 2 - Buy P1 Wall, 3 - Buy P2 Bomb, 4 - Buy P2 Wall, 0 - Continue")
-        
+     
         key = msvcrt.getch().decode('latin-1').lower()
         
         if key == '1' and savedLoot1 >= 3:
@@ -469,7 +455,6 @@ def addToInventory(inventory, item):
             return True
     return False
 
-
 def damagePlayer(posX, posY, dmg):
     global curPlayerOneHP, curPlayerTwoHP, gameIsActive, gotHitPlOne, gotHitPlTwo
 
@@ -489,7 +474,6 @@ def damagePlayer(posX, posY, dmg):
             gotHitPlTwo = curTime
 
     checkPlayerDeath()
-
 
 def createDmgZone(posX1, posY1, posX2, posY2, timeSleep):
     global dmgZone, blink   
@@ -762,38 +746,39 @@ print("\033[H", end="")
 
 #if __name__ == '__main__': 
     #load_animation()
-shopShown = False  # Флаг, чтобы магазин не вызывался повторно
 
-while gameIsActive:  # Считай void Update()
+while gameIsActive: #Считай void Update()
+
     allDead = (playerOneX == -999 and playerTwoX == -999)
 
-    # Проверка, нужно ли открывать магазин
-    if (allDead or (playerOneCashedOut and playerTwoCashedOut)) and not shopShown:
-        shopShown = True  # предотвращаем повторный вызов
+    if allDead or (playerOneCashedOut and playerTwoCashedOut) and gameIsActive == True:
+        gameIsActive = False
         lootCount1, lootCount2, playerOneBombs, playerOneWalls, playerTwoBombs, playerTwoWalls = \
-            drawCashScreen(
-                lootCount1, lootCount2,
-                playerOneDied, playerTwoDied,
-                playerOneCashedOut, playerTwoCashedOut,
-                cashoutOrder,
-                playerOneBombs, playerOneWalls,
-                playerTwoBombs, playerTwoWalls
-            )
-
-        # Если после магазина создаётся новая карта
-        if levelIndex > 1:  # или условие перехода на следующую карту
-            shopShown = False  # можно снова показывать магазин на новом уровне
-
+            drawCashScreen(lootCount1, lootCount2,playerOneDied, playerTwoDied,playerOneCashedOut, playerTwoCashedOut,cashoutOrder, playerOneBombs, playerOneWalls,playerTwoBombs, playerTwoWalls)
+        
+        
+    
     checkCashoutStanding()
+
     drawGameUI()
 
     keys = []
     if msvcrt.kbhit():
+        
+        #Делает очередь для инпутов. Должно пофиксить пару багов
         keys.append(msvcrt.getch().decode('latin-1').lower())
-        time.sleep(0.01)
 
+        time.sleep(0.01) #- чтоб консоль успевала прогрузиться
+
+	
         for inputKey in keys:
-            # Игрок 1
+                
+            '''
+            ВСЕ ЧТО СВЯЗЯННО С ПЕРЕДВИЖЕНИЕМ
+            '''
+            #ИНПУТЫ
+    
+            #ИГРОК 1
             if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
                 playerOneY -= 1
                 checkPlayer(playerOneX, playerOneY)
@@ -806,8 +791,8 @@ while gameIsActive:  # Считай void Update()
             elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
                 playerOneX += 1
                 checkPlayer(playerOneX, playerOneY)
-
-            # Игрок 2
+    
+            #ИГРОК 2
             if inputKey == 'o' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
                 playerTwoY -= 1
                 checkPlayer(playerTwoX, playerTwoY)
@@ -820,3 +805,8 @@ while gameIsActive:  # Считай void Update()
             elif inputKey == ';' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
                 playerTwoX += 1
                 checkPlayer(playerTwoX, playerTwoY)
+
+    else:
+        pass
+    
+    #time.sleep(0.03)
