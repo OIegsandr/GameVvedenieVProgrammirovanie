@@ -82,6 +82,8 @@ soundDeath = pygame.mixer.Sound("D:/UniverProjects/VvedenieVProgrammirovanie/Pro
 soundCashout = pygame.mixer.Sound("D:/UniverProjects/VvedenieVProgrammirovanie/ProjectGame/GameVvedenieVProgrammirovanie/audio/cashout.mp3")
 soundMine = pygame.mixer.Sound("D:/UniverProjects/VvedenieVProgrammirovanie/ProjectGame/GameVvedenieVProgrammirovanie/audio/mine.wav")
 soundExit = pygame.mixer.Sound("D:/UniverProjects/VvedenieVProgrammirovanie/ProjectGame/GameVvedenieVProgrammirovanie/audio/exitCash.wav")
+
+pygame.mixer.music.load("D:/UniverProjects/VvedenieVProgrammirovanie/ProjectGame/GameVvedenieVProgrammirovanie/audio/Laseraxe.ogg")
     
 #Прикольная анимация
 def load_animation():
@@ -149,23 +151,58 @@ def load_animation():
 
 
 OFFSET_X = 110  # количество пробелов слева
-OFFSET_Y = 3  # количество пустых строк сверху
+OFFSET_Y = 2  # количество пустых строк сверху
+
+#Таймер
+gameTime = 60
+timerBarLength = 30
 
 
 
 def drawUITop():
+
+    global gameTime, startTime
+
+    elapsed = int(time.time() - startTime)
+    remT = max(0, gameTime - elapsed)
+    minT = remT // 60
+    secT = remT % 60
+
+    filledLength = int(timerBarLength * remT / gameTime)
+    bar = colorText.RED + "█" * filledLength + colorText.BLANK
+    bar += colorText.DARKRED + "░" * (timerBarLength - filledLength) + colorText.BLANK
+
     for _ in range(OFFSET_Y):
             print()
     print(" " * (OFFSET_X - 20) + "╔════════════════════╧═════════════════╧════════════════════╗")
     print()
     print(" " * (OFFSET_X + 3) + colorText.YELLOW + "=== СТАТУС ===" + colorText.BLANK)
     print()
-    print(" " * (OFFSET_X - 15) + colorText.ORANGELL + f"Player Ⅰ's HP: {colorText.BLANK}[{colorText.GREEN + (curPlayerOneHP * '▓█') + (maxPlayerOneHP - curPlayerOneHP) * '▁▁' + colorText.BLANK}]{colorText.ORANGELL}  |  Player Ⅱ's HP: {colorText.BLANK}[{colorText.GREEN + (curPlayerTwoHP * '▓█') + (maxPlayerTwoHP - curPlayerTwoHP) * '▁▁' + colorText.BLANK}]")
+
+    print(" " * (OFFSET_X - 14) + colorText.ORANGELL + f"Игрок Ⅰ - HP: {colorText.BLANK}[{colorText.GREEN + (curPlayerOneHP * '▓█') + (maxPlayerOneHP - curPlayerOneHP) * '▁▁' + colorText.BLANK}]{colorText.ORANGELL}  |  Игрок Ⅱ - HP: {colorText.BLANK}[{colorText.GREEN + (curPlayerTwoHP * '▓█') + (maxPlayerTwoHP - curPlayerTwoHP) * '▁▁' + colorText.BLANK}]")
     print()
-    print(" " * (OFFSET_X - 21) + colorText.ORANGEL +"Player Ⅰ inventory: " + colorText.BLANK + formatInventory(playerOneInventory) + colorText.ORANGEL + "  |  " + "Player Ⅱ inventory: " + colorText.BLANK + formatInventory(playerTwoInventory))
+
+    inventoryUI1 = formatInventory(playerOneInventory)
+    if cashoutTimerP1 is not None:
+        progress = min(1.0, (time.time() - cashoutTimerP1) / cashoutRequired)
+        filled = int(7 * progress)
+        inventoryUI1 = "[" + colorText.GREEN + "█" * filled  + "░" * (7 - filled) + colorText.BLANK + "]"
+
+    inventoryUI2 = formatInventory(playerTwoInventory)
+    if cashoutTimerP2 is not None:
+        progress = min(1.0, (time.time() - cashoutTimerP2) / cashoutRequired)
+        filled = int(7 * progress)
+        inventoryUI2 = "[" + colorText.GREEN + "█" * filled  + "░" * (7 - filled) + colorText.BLANK + "]"
+    print(" " * (OFFSET_X - 22) + colorText.ORANGEL +
+          f"Игрок Ⅰ - Инвентарь: {colorText.BLANK}{inventoryUI1}" + colorText.ORANGEL + "  |  " + f"Игрок Ⅱ - Инвентарь: {colorText.BLANK}{inventoryUI2}")
+    
     print()
-    print(" " * (OFFSET_X - 17) + colorText.ORANGE + f"Player's Ⅰ Loot count : {colorText.YELLOW}{lootCount1}{colorText.ORANGE}" + "  |  " + f"Player's Ⅱ Loot count : {colorText.YELLOW}{lootCount2}{colorText.BLANK}")
+    print(" " * (OFFSET_X - 17) + colorText.ORANGE + f"Игрок Ⅰ - Награбленное: {colorText.YELLOW}{lootCount1}{colorText.ORANGE}" + "  |  " + f"Игрок Ⅱ - Награбленное: {colorText.YELLOW}{lootCount2}{colorText.BLANK}")
     print()
+
+    print(" " * (OFFSET_X - 13) + colorText.RED + f"ОСТАЛОСЬ: {minT:01}:{secT:02} [{bar}]" + colorText.BLANK)
+    print()
+
     print(" " * (OFFSET_X - 20) + "╚════════════════════╤═════════════════╤════════════════════╝")
     print()
     print()
@@ -186,6 +223,20 @@ def drawUIBottom():
     print(" " * (OFFSET_X - 26) + "Готовы уходить? Вставай на " + colorText.DARKGREEN + "КЭШАУТ [₡]" + colorText.BLANK + " и ЖДИ. Бонусный лут " + colorText.BLUE + "САМОМУ ПЕРВОМУ!" + colorText.BLANK)
     print()
     print(" " * (OFFSET_X - 25) + "╚══════════════════════════╤═════════════════╤══════════════════════════╝")
+
+def drawEndScree(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2, cashoutOrder):
+    drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2, cashoutOrder)
+
+    end_time = time.time() + 15
+    while time.time() < end_time:
+        time.sleep(0.1)
+
+    drawShopScreen()
+
+def drawShopScreen():
+    print("\033[H\033[2J", end="")  # Очистка экрана
+    print(" " * (OFFSET_X - 10) + "=== ЭКРАН МАГАЗИНА ===")
+    print(" " * (OFFSET_X - 20) + "Здесь будет интерфейс покупки/улучшений.")
 
 #РИСУЕТ ПОЛЕ
 def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
@@ -268,8 +319,10 @@ def drawGameUI():
 
 
 #И опять, да из ГПТ. Извините
-def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2, cashoutOrder, playerOneBombs, playerOneWalls, playerTwoBombs, playerTwoWalls):
+def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2, cashoutOrder):
+    print("\033[2J\033[H", end="")
 
+    global endScreenStart
     global gameIsActive
     global levelIndex, gameIsActive
     global boardSizeX, boardSizeY
@@ -295,71 +348,40 @@ def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2,
 
     # --- Условия бонусов ---
     bonusText = []
-    if died1: bonusText.append("Player Ⅰ died → receives 50% of loot")
-    if died2: bonusText.append("Player Ⅱ died → receives 50% of loot")
+    if died1: bonusText.append("Игрок Ⅰ умер → получает 50% лута")
+    if died2: bonusText.append("Игрок Ⅱ умер → получает 50% лута")
     if cashoutOrder:
-        bonusText.append(f"Player who exited first ({cashoutOrder[0]}) receives +25% bonus")
+        bonusText.append(f"Игрок, который вышел первым ({cashoutOrder[0]}) получает +25% бонус")
     if not bonusText:
-        bonusText.append("No bonuses or penalties applied.")
+        bonusText.append("Нету бонусов!")
 
     # --- Очистка экрана и вывод таблицы ---
+    
     print("\033[2J\033[H", end="")
+    #for _ in range(OFFSET_Y):
+            #print()
     print(" " * (OFFSET_X - 20) + "╔════════════════════╧═════════════════╧════════════════════╗\n")
-    print(" " * (OFFSET_X + 10) + colorText.ORANGEL + "=== CASH SCREEN ===" + colorText.BLANK + "\n")
-    print(" " * (OFFSET_X - 20) + colorText.ORANGE + f"Player Ⅰ: base {colorText.YELLOW}{base1}{colorText.ORANGE} → final {colorText.YELLOW}{final1}{colorText.BLANK}\n")
-    print(" " * (OFFSET_X - 20) + colorText.ORANGE + f"Player Ⅱ: base {colorText.YELLOW}{base2}{colorText.ORANGE} → final {colorText.YELLOW}{final2}{colorText.BLANK}\n")
+    print(" " * (OFFSET_X) + colorText.ORANGEL + "=== НАГРАБЛЕННОЕ ===" + colorText.BLANK + "\n")
+    print(" " * (OFFSET_X - 5) + colorText.ORANGE + f"Игрок Ⅰ: изначально {colorText.YELLOW}{base1}{colorText.ORANGE} → всего {colorText.YELLOW}{final1}{colorText.BLANK}\n")
+    print(" " * (OFFSET_X - 5) + colorText.ORANGE + f"Игрок Ⅱ: изначально {colorText.YELLOW}{base2}{colorText.ORANGE} → всего {colorText.YELLOW}{final2}{colorText.BLANK}\n")
     print(" " * (OFFSET_X - 20) + "╚════════════════════╤═════════════════╤════════════════════╝\n")
-    print(" " * (OFFSET_X - 15) + colorText.CYAN + "=== CONDITIONS APPLIED ===" + colorText.BLANK)
+    print(" " * (OFFSET_X - 2) + colorText.CYAN + "=== Доп. Условия ===" + colorText.BLANK)
     for line in bonusText:
         print(" " * (OFFSET_X - 10) + colorText.YELLOW + "- " + line + colorText.BLANK)
     print("\n")
+    # --- Таймер до перехода в магазин ---
+    if 'endScreenStart' not in globals():
+        endScreenStart = time.time()  # если ещё не задано, задаём старт таймера
 
-    # --- Сохраняем финалы для магазина ---
-    savedLoot1 = final1
-    savedLoot2 = final2
-    savedBombs1 = playerOneBombs
-    savedWalls1 = playerOneWalls
-    savedBombs2 = playerTwoBombs
-    savedWalls2 = playerTwoWalls
+    elapsedEnd = time.time() - endScreenStart
+    remaining = max(0, 15 - elapsedEnd)
+    filled = int(30 * remaining / 15)
+    bar = colorText.GREEN + "█" * filled + colorText.BLANK
+    bar += colorText.DARKRED + "░" * (30 - filled) + colorText.BLANK
+    print(" " * (OFFSET_X - 10) + f"До перехода в магазин: [{bar}] {remaining:.1f}с")
+    sys.stdout.flush()
 
-    # --- Магазин покупок ---
-    buying = True
-    while buying:
-     
-        key = msvcrt.getch().decode('latin-1').lower()
-        
-        if key == '1' and savedLoot1 >= 3:
-            savedLoot1 -= 3
-            savedBombs1 += 1
-        elif key == '2' and savedLoot1 >= 2:
-            savedLoot1 -= 2
-            savedWalls1 += 1
-        elif key == '3' and savedLoot2 >= 3:
-            savedLoot2 -= 3
-            savedBombs2 += 1
-        elif key == '4' and savedLoot2 >= 2:
-            savedLoot2 -= 2
-            savedWalls2 += 1
-        elif key == '0':
-            buying = False
-            levelIndex += 1
-            if levelIndex == 2:
-                boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot, bigLoot, trap, mine, blink, box, cashout = createMap(mapSecondLayout)
-                gameIsActive = True
-            if levelIndex == 3:
-                boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot, bigLoot, trap, mine, blink, box, cashout = createMap(mapThirdLayout)
-                gameIsActive = True
-            elif levelIndex > 3:
-                print("Конец игры!")
-                time.sleep(2)
-                sys.exit()
-
-            
-            gameIsActive = True
-            drawGameUI()
-
-
-    return savedLoot1, savedLoot2, savedBombs1, savedWalls1, savedBombs2, savedWalls2
+    return playerOneCash, playerTwoCash
 
 '''#============================================='''
         #ИГРОВАЯ ЛОГИКА И ВСЕ ПРИСУЩЕЕ
@@ -389,10 +411,7 @@ playerTwoDied = False
 playerOneCashedOut = False
 playerTwoCashedOut = False
 
-playerOneBombs = 0
-playerOneWalls = 0
-playerTwoBombs = 0
-playerTwoWalls = 0
+
 
 def formatInventory(inventory):
     result = ""
@@ -508,16 +527,22 @@ def createDmgZone(posX1, posY1, posX2, posY2, timeSleep):
             dmgZone.remove((x, y))
 
 def cashoutInv(playerInventory, playerLootCount):
+
+    addedLoot = 0
+
     for item in playerInventory:
         if item == "$":
             playerLootCount += 1
+            addedLoot += 1
         elif item == "₿":
             playerLootCount += 3
+            addedLoot += 1
 
     for i in range(3):
         playerInventory[i] = None
 
-    soundCashout.play()
+    if addedLoot != 0:
+        soundCashout.play()
     return playerLootCount
 
 def checkPlayerDeath():
@@ -746,67 +771,101 @@ print("\033[H", end="")
 
 #if __name__ == '__main__': 
     #load_animation()
+    
+endScreenStart = None
+endScreenShown = False
 
-while gameIsActive: #Считай void Update()
+startTime = time.time()
 
-    allDead = (playerOneX == -999 and playerTwoX == -999)
+pygame.mixer.music.play(loops=-1)
+pygame.mixer.music.set_volume(0.8)
 
-    if allDead or (playerOneCashedOut and playerTwoCashedOut) and gameIsActive == True:
-        gameIsActive = False
-        lootCount1, lootCount2, playerOneBombs, playerOneWalls, playerTwoBombs, playerTwoWalls = \
-            drawCashScreen(lootCount1, lootCount2,playerOneDied, playerTwoDied,playerOneCashedOut, playerTwoCashedOut,cashoutOrder, playerOneBombs, playerOneWalls,playerTwoBombs, playerTwoWalls)
-        
+while True:
+
+    if gameIsActive: #Считай void Update()
+
+        allDead = (playerOneX == -999 and playerTwoX == -999)
+
+        if allDead or (playerOneCashedOut and playerTwoCashedOut):
+            gameIsActive = False
+            endScreenStart = time.time() 
+            
         
     
-    checkCashoutStanding()
+        checkCashoutStanding()
 
-    drawGameUI()
+        drawGameUI()
 
-    keys = []
-    if msvcrt.kbhit():
-        
-        #Делает очередь для инпутов. Должно пофиксить пару багов
-        keys.append(msvcrt.getch().decode('latin-1').lower())
+        keys = []
+        if msvcrt.kbhit():
+            
+            #Делает очередь для инпутов. Должно пофиксить пару багов
+            keys.append(msvcrt.getch().decode('latin-1').lower())
 
-        time.sleep(0.01) #- чтоб консоль успевала прогрузиться
+            time.sleep(0.01) #- чтоб консоль успевала прогрузиться
 
 	
-        for inputKey in keys:
+            for inputKey in keys:
                 
-            '''
-            ВСЕ ЧТО СВЯЗЯННО С ПЕРЕДВИЖЕНИЕМ
-            '''
-            #ИНПУТЫ
+                '''
+                ВСЕ ЧТО СВЯЗЯННО С ПЕРЕДВИЖЕНИЕМ
+                '''
+                #ИНПУТЫ
     
-            #ИГРОК 1
-            if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
-                playerOneY -= 1
-                checkPlayer(playerOneX, playerOneY)
-            elif inputKey == 's' and playerOneY < boardSizeY - 1 and can_move(playerOneX, playerOneY+1):
-                playerOneY += 1
-                checkPlayer(playerOneX, playerOneY)
-            elif inputKey == 'a' and playerOneX > 0 and can_move(playerOneX-1, playerOneY):
-                playerOneX -= 1
-                checkPlayer(playerOneX, playerOneY)
-            elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
-                playerOneX += 1
-                checkPlayer(playerOneX, playerOneY)
+                #ИГРОК 1
+                if inputKey == 'w' and playerOneY > 0 and can_move(playerOneX, playerOneY-1):
+                    playerOneY -= 1
+                    checkPlayer(playerOneX, playerOneY)
+                elif inputKey == 's' and playerOneY < boardSizeY - 1 and can_move(playerOneX, playerOneY+1):
+                    playerOneY += 1
+                    checkPlayer(playerOneX, playerOneY)
+                elif inputKey == 'a' and playerOneX > 0 and can_move(playerOneX-1, playerOneY):
+                    playerOneX -= 1
+                    checkPlayer(playerOneX, playerOneY)
+                elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
+                    playerOneX += 1
+                    checkPlayer(playerOneX, playerOneY)
     
-            #ИГРОК 2
-            if inputKey == 'o' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
-                playerTwoY -= 1
-                checkPlayer(playerTwoX, playerTwoY)
-            elif inputKey == 'l' and playerTwoY < boardSizeY - 1 and can_move(playerTwoX, playerTwoY+1):
-                playerTwoY += 1
-                checkPlayer(playerTwoX, playerTwoY)
-            elif inputKey == 'k' and playerTwoX > 0 and can_move(playerTwoX-1, playerTwoY):
-                playerTwoX -= 1
-                checkPlayer(playerTwoX, playerTwoY)
-            elif inputKey == ';' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
-                playerTwoX += 1
-                checkPlayer(playerTwoX, playerTwoY)
+                #ИГРОК 2
+                if inputKey == 'o' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
+                    playerTwoY -= 1
+                    checkPlayer(playerTwoX, playerTwoY)
+                elif inputKey == 'l' and playerTwoY < boardSizeY - 1 and can_move(playerTwoX, playerTwoY+1):
+                    playerTwoY += 1
+                    checkPlayer(playerTwoX, playerTwoY)
+                elif inputKey == 'k' and playerTwoX > 0 and can_move(playerTwoX-1, playerTwoY):
+                    playerTwoX -= 1
+                    checkPlayer(playerTwoX, playerTwoY)
+                elif inputKey == ';' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
+                    playerTwoX += 1
+                    checkPlayer(playerTwoX, playerTwoY)
 
-    else:
-        pass
+        else:
+            pass
+
+        elapsed = int(time.time() - startTime)
+        if elapsed >= gameTime:
+            # Все игроки, кто не успел на кэшаут, считаются мертвыми
+            if not playerOneCashedOut:
+                curPlayerOneHP = 0
+                playerOneX = playerOneY = -999
+                playerOneInventory = [None, None, None]
+                playerOneDied = True
+                soundDeath.play()
+
+            if not playerTwoCashedOut:
+                curPlayerTwoHP = 0
+                playerTwoX = playerTwoY = -999
+                playerTwoInventory = [None, None, None]
+                playerTwoDied = True
+                soundDeath.play()
+
+            gameIsActive = False
+            drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
     
-    #time.sleep(0.03)
+        #time.sleep(0.03)
+    else:
+        lootCount1, lootCount2 = drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
+
+        
+
