@@ -19,7 +19,7 @@
 .....33MMHGGGMM,,:::::::::;SMMSSSAA55555GGH,,:::;:;rrMhHA2SSSSSSGH....
 ....h55MMHHGG33::::::::::;;;riSSSAA55233HMM:::::;;;;;iir;;SSSSSSGH....
 ....322MMHHHH33::::;::;::::::;GSSAA55255HMM:::;:::::::;;::GSGSSSHHGG..
-....522MhMHHHMM::::::::::::,33SGGXX522A2HHHrr::::::::::,XXSSSSSSMMGH..№
+....522MhMHHHMM::::::::::::,33SGGXX522A2HHHrr::::::::::,XXSSSSSSMMGH..
 ..552A233MHHHHG22::::::::::AGGSGHAA222XXMHHHHi:::::,,,,:GGSSSSSSMMHH..
 ..55AAA22MHHHHHHGhss::;AAMMGGGGS5225522A3HHGGHhhXs::;22GSGSSSSSGMhHH..
 ..22AAAXXhMMHHHHHGGGGGGGGGGGGGHHA2255522AMMHHGGGGGSGGGGSSSSSSSSMMMHH..
@@ -161,7 +161,7 @@ timerBarLength = 30
 
 def drawUITop():
 
-    global gameTime, startTime
+    global gameTime, startTime, remT
 
     elapsed = int(time.time() - startTime)
     remT = max(0, gameTime - elapsed)
@@ -250,7 +250,7 @@ def drawShopScreen():
     print()
     print(" " * (OFFSET_X - 5) + colorText.RED + "=== ПОДСКАЗКА ===" + colorText.BLANK)
     print()
-    print(" " * (OFFSET_X - 58) + colorText.DARKRED + f"'Q' = Игрок 1 купил бомбу. {colorText.BLACK}|-|{colorText.DARKRED} 'E' = Игрок 1 купил стену.{colorText.BLUE} |---|---| {colorText.DARKRED}'I' = Игрок 2 купил бомбу. {colorText.BLACK}|-|{colorText.DARKRED} 'P' = Игрок 2 купил бомбу." + colorText.BLANK)
+    print(" " * (OFFSET_X - 58) + colorText.DARKRED + f"'Q' = Игрок 1 купил бомбу. {colorText.BLACK}|-|{colorText.DARKRED} 'E' = Игрок 1 купил стену.{colorText.BLUE} |---|---| {colorText.DARKRED}'I' = Игрок 2 купил бомбу. {colorText.BLACK}|-|{colorText.DARKRED} 'P' = Игрок 2 купил стену." + colorText.BLANK)
 
 
     sys.stdout.flush()
@@ -333,6 +333,40 @@ def drawGameUI():
 
     # Это вроде надо, но я хз почему без него оно начинает работать
     sys.stdout.flush()
+
+def tutorialScreen():
+    for _ in range(OFFSET_Y):
+            print()
+    print(" " * (OFFSET_X - 20) + "╔════════════════════╧═════════════════╧════════════════════╗")
+    print()
+    print(" " * (OFFSET_X + 3) + colorText.YELLOW + "=== Туториал ===" + colorText.BLANK)
+    print()
+
+    print(" " * (OFFSET_X - 14) + colorText.ORANGELL + f"Ваша задача - собрать {colorText.GREEN}ДЕНЬГИ{colorText.YELLOW} - [$]/[₿]" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 14) + colorText.ORANGEL + f"Вы управляете кубиками с номерами {colorText.BLUE}[1]{colorText.ORANGEL} и {colorText.GREEN}[2]" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 20) + colorText.ORANGEL + f"Сверху находятся ваши параметры - ивентарь, здоровье и собранный ЛУТ.")
+    print()
+    print(" " * (OFFSET_X - 45) + colorText.ORANGEL + f"Чтобы СОХРАНИТЬ свой лут, вы должны перейти на клетку {colorText.DARKGREEN}[₡]{colorText.ORANGEL}. Если долго на ней стоять - вы сбежите и не потеряете свой ЛУТ." + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 28) + colorText.ORANGEL + f"Избегайте ловушек {colorText.RED}[!!]{colorText.ORANGEL} и мин {colorText.DARKRED}[⚠]{colorText.ORANGEL}. Я слышал, что коробки {colorText.BROWN}[-]{colorText.ORANGEL} можно сломать минами!")    
+    print()
+    print(" " * (OFFSET_X - 6) + colorText.BLUE + "Нажмите ENTER для продолжения" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 20) + "╚════════════════════╤═════════════════╤════════════════════╝")
+    print()
+    print()
+
+    while True:
+        if msvcrt.kbhit():
+            key = msvcrt.getch()
+            if key == b'\r' or key == b'\n':  # Enter
+                sys.stdout.flush()
+                clear()
+                print("\033[2J\033[H", end="")
+                break
+                
 
 
 #И опять, да из ГПТ. Извините
@@ -781,7 +815,9 @@ if __name__ == '__main__':
     
 endScreenStart = None
 isInEndScreen = False 
-isInShop = False      
+isInShop = False     
+
+tutorialScreen()
 
 startTime = time.time()
 
@@ -793,12 +829,14 @@ while True:
     if gameIsActive: #Считай void Update()
 
         allDead = (playerOneX == -999 and playerTwoX == -999)
+        
 
         if allDead or (playerOneCashedOut and playerTwoCashedOut) or (playerOneCashedOut and playerTwoX == -999) or (playerOneX == -999 and playerTwoCashedOut):
             gameIsActive = False
             endScreenStart = time.time() 
             isInEndScreen = True
             levelIndex += 1
+            
                    
         checkCashoutStanding()
 
@@ -835,8 +873,10 @@ while True:
                     checkPlayer(playerOneX, playerOneY)
                 elif inputKey == 'q' and playerOneBombs > 0:
                     mine.append((playerOneX, playerOneY))
+                    playerOneBombs -= 1
                 elif inputKey == 'e' and playerOneWalls > 0:
                     box.append((playerOneX, playerOneY))
+                    playerOneWalls -= 1
     
                 #ИГРОК 2
                 if inputKey == 'o' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
@@ -852,14 +892,16 @@ while True:
                     playerTwoX += 1
                     checkPlayer(playerTwoX, playerTwoY)
                 elif inputKey == 'i' and playerTwoBombs > 0:
-                    mine.append((playerOneX, playerOneY))
+                    mine.append((playerTwoX, playerTwoY))
+                    playerTwoBombs -= 1
                 elif inputKey == 'p' and playerTwoWalls > 0:
                     box.append((playerTwoX, playerTwoY))
+                    playerTwoWalls -= 1
 
     elif not gameIsActive:
         if isInEndScreen:
             drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
-            time.sleep(1)
+            time.sleep(10)
             print("\033[H\033[2J", end="")
             if levelIndex == 4:
                 drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
@@ -915,7 +957,9 @@ while True:
                         exit()
                     # сброс временного
                     playerOneDied = False
-                    playerTwoDied = False
+                    playerTwoDied = False   
+                    curPlayerOneHP = maxPlayerOneHP
+                    curPlayerTwoHP = maxPlayerTwoHP
                     playerOneCashedOut = False
                     playerTwoCashedOut = False
                     cashoutOrder = []
