@@ -646,47 +646,47 @@ mapFirstLayout = [
 
 mapSecondLayout = [
     "███████████████████",
-    "█₡1               $█   ██$ *█",
-    "█2    !                █*█$██*█ █",
-    "█ █      - █  ₿-█$█",
-    "█ $      █ █₿$*₿█ █",
-    "███          $ ██████████!█",
-    "█        █$   !-*$█",
-    "█$██████ █  $  --*█",
-    "█  █ ₿█ $█₿ ! ██* █",
-    "██ *  * !█!$  ** *█",
-    "█        *█████  ██",
-    "█ *  $* *- !    ! █",
-    "█--! █--!  █$  ██₿█",
-    "█ $   !   !     ███",
-    "█   █    *   $  !₡█",
-    "█*  *  $  █     ███",
-    "█ ! -     -  *  * █",
-    "██*█*█*█*█*█ !-*-*█",
-    "█₿ ! ₿ !   $   $*₿█",
+    "█₡1     -$-   ₿   █",
+    "█   $   █₿█     * █",
+    "█       █ █ ₿   $ █",
+    "██!██-█ ██████!█*██",
+    "█ * - █$   $ █ █  █",
+    "█ !  $██████ █ █*██",
+    "█ *  $ !     - █ !█",
+    "█-   -   $ ███ * *█",
+    "█$ ! ₿  *   *  - ₿█",
+    "█* $      !  ██████",
+    "█  -  * ██  ██  $ █",
+    "██*█! $ █ !  █ █  █",
+    "██ * ██ ███-!█ █  █",
+    "█₿ █ █   $  $  █* █",
+    "██!███████████!█ ██",
+    "█   $   $ █₿█   * █",
+    "█         █ █     █",
+    "█ ₿    ₿  -$-   2₡█",
     "███████████████████",
 ]
 
 mapThirdLayout = [
     "███████████████████",
-    "█₡1              $█   ██$ *█",
-    "█2               !  █*█$██*█ █",
-    "█ █      - █  ₿-█$█",
-    "█ $      █ █₿$*₿█ █",
-    "███  $ ██████████!█",
-    "█        █$   !-*$█",
-    "█$██████ █  $  --*█",
-    "█  █ ₿█ $█₿ ! ██* █",
-    "██ *  * !█!$  ** *█",
-    "█        *█████  ██",
-    "█ *  $* *- !    ! █",
-    "█--! █--!  █$  ██₿█",
-    "█ $   !   !     ███",
-    "█   █    *   $  !₡█",
-    "█*  *  $  █     ███",
-    "█ ! -     -  *  * █",
-    "██*█*█*█*█*█ !-*-*█",
-    "█₿ ! ₿ !   $   $*₿█",
+    "█₡1  *   $   *  2₡█",
+    "█   !   $$$  *  ! █",
+    "█!   *   *   !    █",
+    "██-█████ █ █████-██",
+    "█ *     $*$     * █",
+    "█   !$  *  $!  *  █",
+    "█$ █████████████ $█",
+    "█!  *   $ $  *   !█",
+    "█████████ █████████",
+    "█$ ₿  !*!$!*  ₿  $█",
+    "█      *! !*    ! █",
+    "█ ₿! ₿ *!$!* ₿ !₿ █",
+    "█*███████*███████ █",
+    "█   * $  $  $ *  *█",
+    "████ █████████ ████",
+    "█₿  *  ₿!-!₿  *! ₿█",
+    "█! ! ██--*--██   !█",
+    "█₿*  *$-!₡!-$* !*₿█",
     "███████████████████",
 ]
 
@@ -776,8 +776,8 @@ clear()
 #==================================================#
 '''#============================================='''
 
-#if __name__ == '__main__': 
-    #load_animation()
+if __name__ == '__main__': 
+    load_animation()
     
 endScreenStart = None
 isInEndScreen = False 
@@ -833,6 +833,10 @@ while True:
                 elif inputKey == 'd' and playerOneX < boardSizeX - 1 and can_move(playerOneX+1, playerOneY):
                     playerOneX += 1
                     checkPlayer(playerOneX, playerOneY)
+                elif inputKey == 'q' and playerOneBombs > 0:
+                    mine.append((playerOneX, playerOneY))
+                elif inputKey == 'e' and playerOneWalls > 0:
+                    box.append((playerOneX, playerOneY))
     
                 #ИГРОК 2
                 if inputKey == 'o' and playerTwoY > 0 and can_move(playerTwoX, playerTwoY-1):
@@ -847,6 +851,10 @@ while True:
                 elif inputKey == ';' and playerTwoX < boardSizeX - 1 and can_move(playerTwoX+1, playerTwoY):
                     playerTwoX += 1
                     checkPlayer(playerTwoX, playerTwoY)
+                elif inputKey == 'i' and playerTwoBombs > 0:
+                    mine.append((playerOneX, playerOneY))
+                elif inputKey == 'p' and playerTwoWalls > 0:
+                    box.append((playerTwoX, playerTwoY))
 
     elif not gameIsActive:
         if isInEndScreen:
