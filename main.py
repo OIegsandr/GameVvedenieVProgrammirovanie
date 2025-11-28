@@ -224,19 +224,36 @@ def drawUIBottom():
     print()
     print(" " * (OFFSET_X - 25) + "╚══════════════════════════╤═════════════════╤══════════════════════════╝")
 
-def drawEndScree(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2, cashoutOrder):
-    drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2, cashoutOrder)
-
-    end_time = time.time() + 15
-    while time.time() < end_time:
-        time.sleep(0.1)
-
-    drawShopScreen()
-
 def drawShopScreen():
-    print("\033[H\033[2J", end="")  # Очистка экрана
-    print(" " * (OFFSET_X - 10) + "=== ЭКРАН МАГАЗИНА ===")
-    print(" " * (OFFSET_X - 20) + "Здесь будет интерфейс покупки/улучшений.")
+    for _ in range(OFFSET_Y+4):
+        print()
+    print("\033[H", end="")  # Очистка экрана
+    print()
+    print()
+    print()
+    print(" " * (OFFSET_X - 6) + colorText.YELLOW + "=== ЭКРАН МАГАЗИНА ===" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 17) + colorText.ORANGE + f"Игрок Ⅰ - Деньги: {colorText.YELLOW}{lootCount1}{colorText.ORANGE}" + "  |  " + f"Игрок Ⅱ - Деньги: {colorText.YELLOW}{lootCount2}{colorText.BLANK}")
+    print()
+    print(" " * (OFFSET_X - 17) + colorText.ORANGEL + f"Бомбы Ⅰ - {colorText.BLUE}{playerOneBombs}{colorText.ORANGEL}" + "       |--|--|       " + f"{colorText.BLUE}{playerTwoBombs}{colorText.ORANGEL} - Ⅱ Бомбы")
+    print()
+    print(" " * (OFFSET_X - 17) + colorText.ORANGELL + f"Стены Ⅰ - {colorText.CYAN}{playerOneWalls}{colorText.ORANGELL}" + "     |----|----|     " + f"{colorText.CYAN}{playerTwoWalls}{colorText.ORANGELL} - Ⅱ Стены" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 25) + colorText.YELLOW + "╟─────────────────────── ПРЕДМЕТЫ ───────────────────────╢" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 10) + colorText.GREEN + "[1] Купить БОМБУ (3 лута)")
+    print()
+    print(" " * (OFFSET_X - 10) + "[2] Купить СТЕНУ (4 лута)" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 14) + colorText.BLUE + "[ENTER] — продолжить к следующему уровню" + colorText.BLANK)
+    print()
+    print()
+    print(" " * (OFFSET_X - 5) + colorText.RED + "=== ПОДСКАЗКА ===" + colorText.BLANK)
+    print()
+    print(" " * (OFFSET_X - 58) + colorText.DARKRED + f"'Q' = Игрок 1 купил бомбу. {colorText.BLACK}|-|{colorText.DARKRED} 'E' = Игрок 1 купил стену.{colorText.BLUE} |---|---| {colorText.DARKRED}'I' = Игрок 2 купил бомбу. {colorText.BLACK}|-|{colorText.DARKRED} 'P' = Игрок 2 купил бомбу." + colorText.BLANK)
+
+
+    sys.stdout.flush()
 
 #РИСУЕТ ПОЛЕ
 def drawField(posPlayerOneX, posPlayerOneY, posPlayerTwoX, posPlayerTwoY):
@@ -320,9 +337,6 @@ def drawGameUI():
 
 #И опять, да из ГПТ. Извините
 def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2, cashoutOrder):
-    print("\033[2J\033[H", end="")
-
-    global endScreenStart
     global gameIsActive
     global levelIndex, gameIsActive
     global boardSizeX, boardSizeY
@@ -346,6 +360,7 @@ def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2,
     final1 = int(final1)
     final2 = int(final2)
 
+    print("\033[2J\033[H", end="")
     # --- Условия бонусов ---
     bonusText = []
     if died1: bonusText.append("Игрок Ⅰ умер → получает 50% лута")
@@ -354,10 +369,6 @@ def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2,
         bonusText.append(f"Игрок, который вышел первым ({cashoutOrder[0]}) получает +25% бонус")
     if not bonusText:
         bonusText.append("Нету бонусов!")
-
-    # --- Очистка экрана и вывод таблицы ---
-    
-    print("\033[2J\033[H", end="")
     #for _ in range(OFFSET_Y):
             #print()
     print(" " * (OFFSET_X - 20) + "╔════════════════════╧═════════════════╧════════════════════╗\n")
@@ -365,20 +376,10 @@ def drawCashScreen(playerOneCash, playerTwoCash, died1, died2, cashed1, cashed2,
     print(" " * (OFFSET_X - 5) + colorText.ORANGE + f"Игрок Ⅰ: изначально {colorText.YELLOW}{base1}{colorText.ORANGE} → всего {colorText.YELLOW}{final1}{colorText.BLANK}\n")
     print(" " * (OFFSET_X - 5) + colorText.ORANGE + f"Игрок Ⅱ: изначально {colorText.YELLOW}{base2}{colorText.ORANGE} → всего {colorText.YELLOW}{final2}{colorText.BLANK}\n")
     print(" " * (OFFSET_X - 20) + "╚════════════════════╤═════════════════╤════════════════════╝\n")
-    print(" " * (OFFSET_X - 2) + colorText.CYAN + "=== Доп. Условия ===" + colorText.BLANK)
+    print(" " * (OFFSET_X) + colorText.CYAN + "=== Доп. Условия ===" + colorText.BLANK)
     for line in bonusText:
-        print(" " * (OFFSET_X - 10) + colorText.YELLOW + "- " + line + colorText.BLANK)
+        print(" " * (OFFSET_X - 20) + colorText.YELLOW + "- " + line + colorText.BLANK)
     print("\n")
-    # --- Таймер до перехода в магазин ---
-    if 'endScreenStart' not in globals():
-        endScreenStart = time.time()  # если ещё не задано, задаём старт таймера
-
-    elapsedEnd = time.time() - endScreenStart
-    remaining = max(0, 15 - elapsedEnd)
-    filled = int(30 * remaining / 15)
-    bar = colorText.GREEN + "█" * filled + colorText.BLANK
-    bar += colorText.DARKRED + "░" * (30 - filled) + colorText.BLANK
-    print(" " * (OFFSET_X - 10) + f"До перехода в магазин: [{bar}] {remaining:.1f}с")
     sys.stdout.flush()
 
     return playerOneCash, playerTwoCash
@@ -410,6 +411,10 @@ playerOneDied = False
 playerTwoDied = False
 playerOneCashedOut = False
 playerTwoCashedOut = False
+
+playerOneBombs = playerTwoBombs = 0
+playerOneWalls = playerTwoWalls = 0
+
 
 
 
@@ -756,10 +761,12 @@ def can_move(x, y):
     return (x, y) not in wallsMap and 0 <= x < boardSizeX and 0 <= y < boardSizeY and (x, y) not in box
 
 #ЧИСТИТ КОНСОЛЬ + ПО МЕЛОЧИ
-os.system("") 
-print("\033[2J", end="") 
-print("\033[H", end="")
+def clear():
+    os.system("") 
+    print("\033[2J", end="") 
+    print("\033[H", end="")
 
+clear()
 
 '''#============================================='''
 #==================================================#
@@ -773,7 +780,8 @@ print("\033[H", end="")
     #load_animation()
     
 endScreenStart = None
-endScreenShown = False
+isInEndScreen = False 
+isInShop = False      
 
 startTime = time.time()
 
@@ -786,12 +794,12 @@ while True:
 
         allDead = (playerOneX == -999 and playerTwoX == -999)
 
-        if allDead or (playerOneCashedOut and playerTwoCashedOut):
+        if allDead or (playerOneCashedOut and playerTwoCashedOut) or (playerOneCashedOut and playerTwoX == -999) or (playerOneX == -999 and playerTwoCashedOut):
             gameIsActive = False
             endScreenStart = time.time() 
-            
-        
-    
+            isInEndScreen = True
+            levelIndex += 1
+                   
         checkCashoutStanding()
 
         drawGameUI()
@@ -840,32 +848,71 @@ while True:
                     playerTwoX += 1
                     checkPlayer(playerTwoX, playerTwoY)
 
-        else:
-            pass
-
-        elapsed = int(time.time() - startTime)
-        if elapsed >= gameTime:
-            # Все игроки, кто не успел на кэшаут, считаются мертвыми
-            if not playerOneCashedOut:
-                curPlayerOneHP = 0
-                playerOneX = playerOneY = -999
-                playerOneInventory = [None, None, None]
-                playerOneDied = True
-                soundDeath.play()
-
-            if not playerTwoCashedOut:
-                curPlayerTwoHP = 0
-                playerTwoX = playerTwoY = -999
-                playerTwoInventory = [None, None, None]
-                playerTwoDied = True
-                soundDeath.play()
-
-            gameIsActive = False
+    elif not gameIsActive:
+        if isInEndScreen:
             drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
-    
-        #time.sleep(0.03)
-    else:
-        lootCount1, lootCount2 = drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
+            time.sleep(1)
+            print("\033[H\033[2J", end="")
+            if levelIndex == 4:
+                drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
+                for _ in range(10):
+                    print()
+                print(f"Конец. Прям совсем.                                                                                              {colorText.GREEN}Спасибо за игру!{colorText.BLANK}")
+                for _ in range(20):
+                    print()
+                exit()
+            isInShop = True
+            isInEndScreen = False
+        elif isInShop:
+            drawShopScreen()
 
-        
+            if msvcrt.kbhit():
+                key = msvcrt.getch()
+
+                if key == b'q': #bomb1
+                    if lootCount1 >= 3:
+                        lootCount1 -= 3
+                        playerOneBombs += 1
+
+                if key == b'e': #wall1
+                    if lootCount1 >= 4:
+                        lootCount1 -= 4
+                        playerOneWalls += 1
+
+                if key == b'i': #bomb2
+                    if lootCount2 >= 3:
+                        lootCount2 -= 3
+                        playerTwoBombs += 1
+
+                if key == b'p': #wall2
+                    if lootCount2 >= 4:
+                        lootCount2 -= 4
+                        playerTwoWalls += 1
+
+
+                elif key == b'\r' or key == b'\n':  # Enter
+                    # загружаем следующий уровень
+                    clear()
+                    if levelIndex == 2:
+                        (boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot, bigLoot, trap, mine, blink, box, cashout) = createMap(mapSecondLayout)
+                    elif levelIndex ==3:
+                        (boardSizeX, boardSizeY, playerOneX, playerOneY, playerTwoX, playerTwoY, wallsMap, loot, bigLoot, trap, mine, blink, box, cashout) = createMap(mapThirdLayout)
+                    else:
+                        drawCashScreen(lootCount1, lootCount2, playerOneDied, playerTwoDied, playerOneCashedOut, playerTwoCashedOut, cashoutOrder)
+                        for _ in range(10):
+                            print()
+                        print(f"Конец. Прям совсем.                                      {colorText.GREEN}Спасибо за игру!{colorText.BLANK}")
+                        for _ in range(10):
+                            print()
+                        exit()
+                    # сброс временного
+                    playerOneDied = False
+                    playerTwoDied = False
+                    playerOneCashedOut = False
+                    playerTwoCashedOut = False
+                    cashoutOrder = []
+
+                    gameIsActive = True
+                    inShop = False
+                    startTime = time.time()
 
